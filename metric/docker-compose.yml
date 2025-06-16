@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
   prometheus:
@@ -20,5 +20,3 @@ services:
     restart: unless-stopped
     volumes:
       - ./grafana:/var/lib/grafana
-    extra_hosts:
-      - "host.docker.internal:host-gateway"

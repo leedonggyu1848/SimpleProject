@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./simple
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    ports:
+      - "${BACKEND_PORT-8080}:8080"
+    environment:
+      - RDB_URL=mysql://rdbms:3306/${RDB_DATABASE:-testdb}
+      - RDB_USER=${RDB_USER:-user}
+      - RDB_PASSWORD=${RDB_PASSWORD:-pw}
+      - RDB_DRIVER_CLASS=com.mysql.cj.jdbc.Driver
+      - MONGO_URL=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-example}@mongo:27017/${MONGO_DATABASE:-testdb}
+    depends_on:
+      - rdbms
+      - mongo
+
+  frontend:
+    build:
+      context: ./simple-front
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT-5173}:5173"
+    environment:
+      - BACKEND_URL=http://backend:8080
+    depends_on:
+      - backend
+
+  rdbms:
+    image: mysql:8.0
+    container_name: rdbms
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${RDB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${RDB_DATABASE:-testdb}
+      MYSQL_USER: ${RDB_USER:-user}
+      MYSQL_PASSWORD: ${RDB_PASSWORD:-pw}
+    ports:
+      - "${RDB_PORT-3306}:3306"
+    volumes:
+      - ./db/data:/var/lib/mysql
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "${NOSQL_PORT-27017}:27017"
+    volumes:
+      - ./db/mongo-data:/data/db
+    environment:
+      MONGO_ROOT_USERNAME: ${NOSQL_USER:-root}
+      MONGO_PASSWORD: ${NOSQL_ROOT_PASSWORD:-example}
+
+  metric:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - "${METRIC_PORT-9090}:9090"
+    volumes:
+      - ./metric/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+
+  dashboard:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - "${DASHBOARD_PORT-3000}:3000"
+    volumes:
+      - ./metric/grafana:/var/lib/grafana
+    depends_on:
+      - metric

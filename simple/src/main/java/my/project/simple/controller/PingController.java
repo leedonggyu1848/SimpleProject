@@ -28,6 +28,9 @@ public class PingController {
 	@GetMapping("/random")
 	public ResponseEntity<Object> random() {
 		int randomNumber = random.nextInt(1000);
+		Trash newTrash = new Trash();
+		newTrash.setContent(String.valueOf(randomNumber));
+		trashService.addTrash(newTrash.getContent());
 		return ResponseEntity.ok()
 				.body(Map.of( "value", randomNumber));
 	}
