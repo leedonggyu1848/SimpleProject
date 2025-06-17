@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  rdbms:
+    image: mysql:8.0
+    container_name: rdbms
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${RDB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${RDB_DATABASE:-testdb}
+      MYSQL_USER: ${RDB_USER:-user}
+      MYSQL_PASSWORD: ${RDB_PASSWORD:-pw}
+    ports:
+      - "${RDB_PORT-3306}:3306"
+    volumes:
+      - ./db/data:/var/lib/mysql
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "${NOSQL_PORT-27017}:27017"
+    volumes:
+      - ./db/mongo-data:/data/db
+    environment:
+      MONGO_ROOT_USERNAME: ${NOSQL_USER:-root}
+      MONGO_PASSWORD: ${NOSQL_ROOT_PASSWORD:-example}
+
+

@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  metric:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - "${METRIC_PORT-9090}:9090"
+    volumes:
+      - ./metric/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+
+  dashboard:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - "${DASHBOARD_PORT-3000}:3000"
+    volumes:
+      - ./metric/grafana:/var/lib/grafana
+    depends_on:
+      - metric
