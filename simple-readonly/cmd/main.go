@@ -19,10 +19,9 @@ func main() {
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
-    mongoURI := getEnv("MONGO_URI", "mongodb://root:example@localhost:27017/?authSource=admin")
-    mongoDBName := getEnv("MONGO_DB", "testdb")
-    trashCollection := getEnv("MONGO_COLLECTION", "trashRead")
-    log.Printf("Connecting to MongoDB at %s, database: %s, collection: %s", mongoURI, mongoDBName, trashCollection)
+    mongoURI := getEnv("MONGO_URL", "mongodb://root:example@localhost:27017/?authSource=admin")
+    mongoDBName := getEnv("MONGO_DATABASE", "testdb")
+    log.Printf("Connecting to MongoDB at %s, database: %s", mongoURI, mongoDBName)
     client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
     if err != nil {
         log.Fatal(err)
@@ -31,7 +30,7 @@ func main() {
     if err != nil {
         log.Fatal("Failed to connect to MongoDB:", err)
     }
-    collection := client.Database(mongoDBName).Collection(trashCollection)
+    collection := client.Database(mongoDBName).Collection("trashRead")
 
     // Trash domain setup
     repo := repository.NewMongoTrashRepository(collection)

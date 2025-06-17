@@ -43,8 +43,6 @@ public class PingController {
 		newTrash = trashService.addTrash(newTrash.getContent());
 		return ResponseEntity.ok()
 				.body(Map.of("value", newTrash,
-						"DB count", trashService.countTrash(),
-						"MongoDB count", trashService.countRead()));
-
+						"DB count", trashService.countTrash()));
 	}
 }

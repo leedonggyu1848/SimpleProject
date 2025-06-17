@@ -1,23 +1,35 @@
 version: "3.8"
 
 services:
-  backend:
+  backend-write:
     build:
       context: ./simple
       dockerfile: Dockerfile
-    container_name: backend
+    container_name: backend-write
     restart: always
     ports:
-      - "${BACKEND_PORT-8080}:8080"
+      - "${BACKEND_WRITE_PORT-8080}:8080"
     environment:
       - FRONT_URL=http://localhost:${FRONTEND_PORT-5173}/
       - RDB_URL=mysql://rdbms:3306/${RDB_DATABASE:-testdb}
       - RDB_USER=${RDB_USER:-user}
       - RDB_PASSWORD=${RDB_PASSWORD:-pw}
       - RDB_DRIVER_CLASS=com.mysql.cj.jdbc.Driver
-      - MONGO_URL=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-example}@mongo:27017/${MONGO_DATABASE:-testdb}
     depends_on:
       - rdbms
+
+  backend-read:
+    build:
+      context: ./simple-readonly
+      dockerfile: Dockerfile
+    container_name: backend-read
+    restart: always
+    ports:
+      - "${BACKEND_READ_PORT-8000}:8000"
+    environment:
+      - MONGO_URL=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-example}@mongo:27017/
+      - MONGO_DATABASE=testdb
+    depends_on:
       - mongo
 
   frontend:
@@ -29,9 +41,10 @@ services:
     ports:
       - "${FRONTEND_PORT-5173}:5173"
     environment:
-      - BACKEND_URL=http://backend:8080
+      - BACKEND_WRITE_URL=http://backend-write:8080
+      - BACKEND_READ_URL=http://backend-read:8000
     depends_on:
-      - backend
+      - backend-write
 
   rdbms:
     image: mysql:8.0
@@ -68,7 +81,7 @@ services:
     volumes:
       - ./metric/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
-      - backend
+      - backend-write
 
   dashboard:
     image: grafana/grafana
