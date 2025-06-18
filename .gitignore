@@ -179,3 +179,4 @@ gradle-app.setting
 db/data
 db/mongo-data
 metric/grafana/grafana.db
+kafka
