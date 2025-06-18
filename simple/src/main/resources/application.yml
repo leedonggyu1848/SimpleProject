@@ -17,6 +17,12 @@ spring:
     hibernate:
           ddl-auto: update
 
+  kafka:
+    bootstrap-servers: ${KAFKA_URL:localhost:9095}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer # 키 직렬화 클래스
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer # 값 직렬화 클래스 (JSON)
+
 management:
   endpoints:
     web:

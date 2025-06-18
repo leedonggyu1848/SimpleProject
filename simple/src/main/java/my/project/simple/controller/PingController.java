@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import my.project.simple.domain.Trash;
+import my.project.simple.repository.KafkaProducer;
 import my.project.simple.service.TrashService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PingController {
 	private final Random random = new Random();
 	private final TrashService trashService;
+	private final KafkaProducer kafkaProducer;
 
 	@GetMapping("/ping")
 	public String ping() {
