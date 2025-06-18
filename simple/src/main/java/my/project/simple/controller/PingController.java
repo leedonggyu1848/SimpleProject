@@ -1,10 +1,7 @@
 package my.project.simple.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import my.project.simple.domain.Trash;
 import my.project.simple.service.TrashService;

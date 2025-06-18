@@ -1,4 +1,3 @@
-# 1단계: 정적 빌드
 FROM golang:1.23 AS builder
 
 WORKDIR /app
