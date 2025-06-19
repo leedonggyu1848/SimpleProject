@@ -31,9 +31,9 @@ func main() {
 
     // Kafka consumer setup
     mqTrashConfig := config.KafkaConfig{
-        Brokers: []string{utils.GetEnv("KAFKA_URL", "localhost:9095")},
-        Topic:   utils.GetEnv("KAFKA_TRASH_TOPIC", "trash"),
-        GroupID: utils.GetEnv("KAFKA_GROUP_ID", "trash-group"),
+        Brokers:    []string{utils.GetEnv("KAFKA_URL", "localhost:9095")},
+        Topic:      "trash",
+        GroupID:    utils.GetEnv("KAFKA_GROUP_ID", "trash-group"),
     }
 
     config.StartKafikaConsumer(mqTrashConfig, func(msg kafka.Message) {
