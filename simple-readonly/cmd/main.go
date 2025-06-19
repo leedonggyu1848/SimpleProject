@@ -3,46 +3,55 @@ package main
 import (
 	"context"
 	"log"
-	"os"
-	"time"
-
+	config "simple-readonly/internal/configuration"
 	"simple-readonly/internal/handler"
+	"simple-readonly/internal/model"
 	"simple-readonly/internal/repository"
 	"simple-readonly/internal/router"
 	"simple-readonly/internal/service"
+	"simple-readonly/internal/utils"
+	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/segmentio/kafka-go"
 )
 
 func main() {
-    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-    defer cancel()
-
-    mongoURI := getEnv("MONGO_URL", "mongodb://root:example@localhost:27017/?authSource=admin")
-    mongoDBName := getEnv("MONGO_DATABASE", "testdb")
-    log.Printf("Connecting to MongoDB at %s, database: %s", mongoURI, mongoDBName)
-    client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
-    if err != nil {
-        log.Fatal(err)
-    }
-    err = client.Ping(ctx, nil)
-    if err != nil {
-        log.Fatal("Failed to connect to MongoDB:", err)
-    }
-    collection := client.Database(mongoDBName).Collection("trashRead")
+    // mongoDB connection setup
+    mongoURL := utils.GetEnv("MONGO_URL", "mongodb://root:example@localhost:27017/?authSource=admin")
+    mongoDBName := utils.GetEnv("MONGO_DATABASE", "testdb")
+    mongodb := config.GetMongoClient(mongoURL).Database(mongoDBName)
+    defer config.CloseMongo()
 
     // Trash domain setup
-    repo := repository.NewMongoTrashRepository(collection)
-    svc := service.NewTrashService(repo)
-    h := handler.NewTrashHandler(svc)
-
-    router.SetupRouter(h).Run(":8000")
-}
-
-func getEnv(key, defaultVal string) string {
-    if val, exists := os.LookupEnv(key); exists {
-        return val
+    trashRepo, err := repository.NewMongoTrashRepository(mongodb)
+    if err != nil {
+        log.Fatalf("Failed to create trash repository: %s", err.Error())
     }
-    return defaultVal
+    trashSvc := service.NewTrashService(trashRepo)
+
+    // Kafka consumer setup
+    mqTrashConfig := config.KafkaConfig{
+        Brokers: []string{utils.GetEnv("KAFKA_URL", "localhost:9095")},
+        Topic:   utils.GetEnv("KAFKA_TRASH_TOPIC", "trash"),
+        GroupID: utils.GetEnv("KAFKA_GROUP_ID", "trash-group"),
+    }
+
+    config.StartKafikaConsumer(mqTrashConfig, func(msg kafka.Message) {
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+        trash, err := model.FromJson(msg.Value)
+        if err != nil {
+            log.Printf("Failed to parse message: %s", msg.Value)
+            return
+        }
+        err = trashRepo.Save(ctx, trash)
+        if err != nil {
+            log.Printf("Failed to save trash: %s with %s", err.Error(), msg.Value)
+            return
+        }
+    })
+
+    // Router setup
+    h := handler.NewTrashHandler(trashSvc)
+    router.SetupRouter(h).Run(":8000")
 }

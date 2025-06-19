@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log"
 	"simple-readonly/internal/model"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,16 +12,30 @@ import (
 )
 
 type TrashRepository interface {
-	FindByID(ctx context.Context, id string) (*model.Trash, error)
-	CountAll(ctx context.Context) (int64, error)
+    FindByID(ctx context.Context, id string) (*model.Trash, error)
+    CountAll(ctx context.Context) (int64, error)
 }
 
 type mongoTrashRepository struct {
     collection *mongo.Collection
 }
 
-func NewMongoTrashRepository(c *mongo.Collection) *mongoTrashRepository {
-    return &mongoTrashRepository{collection: c}
+const (
+    collectionName = "trashRead"
+)
+
+func NewMongoTrashRepository(db *mongo.Database) (*mongoTrashRepository, error) {
+    c := db.Collection(collectionName)
+    if c == nil {
+        return nil, errors.New("failed to get collection: " + collectionName)
+    }
+    return &mongoTrashRepository{collection: c}, nil
+}
+
+func (r *mongoTrashRepository) Save(ctx context.Context, content *model.Trash) error {
+    log.Printf("save content: %d, %s", content.ID, content.Content)
+    _, err := r.collection.InsertOne(ctx, content)
+    return err
 }
 
 func (r *mongoTrashRepository) FindByID(ctx context.Context, id string) (*model.Trash, error) {
