@@ -78,8 +78,8 @@ services:
     volumes:
       - ./db/mongo-data:/data/db
     environment:
-      MONGO_ROOT_USERNAME: ${MONGO_USER:-root}
-      MONGO_PASSWORD: ${MONGO_PASSWORD:-example}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-example}
 
   metric:
     image: prom/prometheus
