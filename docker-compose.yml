@@ -33,7 +33,7 @@ services:
     environment:
       - MONGO_URL=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-example}@mongo:27017/
       - MONGO_DATABASE=${MONGO_DATABASE:-testdb}
-      - KAFKA_URL=broker:9095
+      - KAFKA_URL=broker:9094
       - KAFKA_TOPIC=${KAFKA_TOPIC:-test-topic}
       - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-trash-group}
     depends_on:
@@ -52,6 +52,7 @@ services:
       - BACKEND_READ_URL=http://backend-read:8000
     depends_on:
       - backend-write
+      - backend-read
 
   rdbms:
     image: mysql:8.0

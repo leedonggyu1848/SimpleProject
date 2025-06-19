@@ -7,7 +7,7 @@ export const options = {
 };
 
 export default function () {
-  const res = http.get('http://localhost:8080/test/add');
+  const res = http.get('http://localhost:8080/trash/add');
   check(res, {
     'status was 200': (r) => r.status === 200,
   });

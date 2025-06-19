@@ -36,8 +36,8 @@ func main() {
         GroupID:    utils.GetEnv("KAFKA_GROUP_ID", "trash-group"),
     }
 
-    config.StartKafikaConsumer(mqTrashConfig, func(msg kafka.Message) {
-        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    go config.StartKafikaConsumer(mqTrashConfig, func(msg kafka.Message) {
+        ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
         defer cancel()
         trash, err := model.FromJson(msg.Value)
         if err != nil {

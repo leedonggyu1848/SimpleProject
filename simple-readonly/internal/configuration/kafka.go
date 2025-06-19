@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -14,13 +15,15 @@ type KafkaConfig struct {
 }
 
 func StartKafikaConsumer(config KafkaConfig, handler func(msg kafka.Message)) {
-	r := kafka.NewReader(kafka.ReaderConfig{
+	r := kafka.NewReader(kafka.ReaderConfig {
 		  Brokers:		config.Brokers,
 		  GroupID:		config.GroupID,
 		  Topic:		config.Topic,
 		  MinBytes: 	10e3, // 10KB
-		  MaxBytes:		10e6, // 10MB
+		  MaxBytes:		10e6, // 10MB,
+		  MaxWait:   1 * time.Second,
 	})
+
 	defer r.Close()
 	log.Printf("Kafka consumer started for topic: %s", config.Topic)
 	for {
