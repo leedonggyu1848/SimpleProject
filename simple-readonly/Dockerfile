@@ -11,12 +11,9 @@ COPY internal ./internal
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build -a -installsuffix cgo -o app ./cmd/main.go
 
-FROM alpine:3.19
-
-RUN apk --no-cache add ca-certificates
+FROM scratch AS runtime
 
 WORKDIR /app
-
 COPY --from=builder /app/app .
 
 CMD ["./app"]
